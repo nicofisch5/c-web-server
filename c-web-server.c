@@ -55,6 +55,11 @@ int main(int argc, char **argv)
     if ((incoming_socket = accept(socket_descriptor, (struct sockaddr *)&client, (socklen_t*)&addr_len)) > 0)
     {
         printf("It seems we received something...\n");
+        printf("sin_family: %d\n", client.sin_family);
+        printf("sin_port: %d\n", client.sin_port);
+        printf("sin_addr: %d\n", client.sin_addr.s_addr);
+        printf("sin_addr: %s\n", inet_ntoa(client.sin_addr));
+        printf("sin_zero: %hhn\n", client.sin_zero);
     }
     
     /**
@@ -67,4 +72,5 @@ int main(int argc, char **argv)
    // v1 Send or write the file to the socker
    //ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 
+    // v3 Log
 }
