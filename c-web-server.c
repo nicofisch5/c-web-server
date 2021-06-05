@@ -7,10 +7,13 @@
 int main(int argc, char **argv)
 {
     const int PORT = 55555;
+    const int NB_REQUESTS = 1;
     int socket_descriptor;
-    struct sockaddr_in server;
+    int incoming_socket;
+    int addr_len;
+    struct sockaddr_in server, client;
 
-    printf("Welcome to c-web-server!");
+    printf("Welcome to c-web-server!\n");
 
     // Check number of arguments, if not enough display error and finish the program
 	/*if (argc < 3) {
@@ -43,9 +46,16 @@ int main(int argc, char **argv)
     }
     printf("Bind OK\n");
 
-    // v1 Listen on this socket port
+    // v1 Put the socket in listening mode
+    listen(socket_descriptor, NB_REQUESTS);
+    printf("Put the socket in listening mode and accept incoming request\n");
     
     // v1 Wait for http request
+    addr_len = sizeof(struct sockaddr_in);
+    if ((incoming_socket = accept(socket_descriptor, (struct sockaddr *)&client, (socklen_t*)&addr_len)) > 0)
+    {
+        printf("It seems we received something...\n");
+    }
     
     /**
      * When a request occurs then
