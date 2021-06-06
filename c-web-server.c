@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+//#include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 //#include <netdb.h>	//hostent
@@ -19,6 +20,7 @@ int main(int argc, char **argv)
     int socket_descriptor;
     int incoming_socket;
     int addr_len;
+    char buffer[1024] = {0};
     struct sockaddr_in server, client;
 
     printf("Welcome to c-web-server!\n");
@@ -56,10 +58,7 @@ int main(int argc, char **argv)
 	    printf("Bind failed\n");
 
         errnum = errno;
-        fprintf(stderr, "Value of errno: %d\n", errno);
-        perror("Error printed by perror");
-        fprintf(stderr, "Error opening file: %s\n", strerror( errnum ));
-
+        fprintf(stderr, "Error: %d - %s\n", errno, strerror(errnum));
   		exit(-1);
     }
     printf("Bind OK\n");
@@ -70,7 +69,7 @@ int main(int argc, char **argv)
     
     // v1 Wait for http request
     addr_len = sizeof(struct sockaddr_in);
-    if ((incoming_socket = accept(socket_descriptor, (struct sockaddr *)&client, (socklen_t*)&addr_len)) > 0)
+    while ((incoming_socket = accept(socket_descriptor, (struct sockaddr *)&client, (socklen_t*)&addr_len)) > 0)
     {
         printf("It seems we received something...\n");
         printf("sin_family: %d\n", client.sin_family);
@@ -78,6 +77,12 @@ int main(int argc, char **argv)
         printf("sin_addr: %d\n", client.sin_addr.s_addr);
         printf("sin_addr: %s\n", inet_ntoa(client.sin_addr));
         //printf("sin_zero: %hhn\n", client.sin_zero);
+
+        // v1 Read message from client
+        if (recv (incoming_socket, buffer, 1024, 0))
+        {
+            printf("Message from client: %s\n", buffer);
+        }
 
         // v0 Write a ack to the client
         send_message_to_client(incoming_socket);
@@ -99,10 +104,8 @@ int main(int argc, char **argv)
 void send_message_to_client(int incoming_socket)
 {
     int ssize_t;
-    char msg[] = "This is an ACK!";
+    char *msg = "HTTP/1.1 200 OK\nServer: c-web-server/0.1\nContent-Type: text/html\nConnection: close\n\nThis is my first HTTP response";
 
-    printf("Prepare to send message to client");
     ssize_t = send(incoming_socket, msg, strlen(msg), 0);
-    //ssize_t = write(new_socket , message , strlen(message));
-    //printf("Message send to client: %s", msg);
+    printf("Message send to client: %s", msg);
 }
