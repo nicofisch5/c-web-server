@@ -1,13 +1,21 @@
+#include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 //#include <netdb.h>	//hostent
 #include <arpa/inet.h>
 
+extern int errno;
+
+const int PORT = 55555;
+const int NB_REQUESTS = 1;
+void send_message_to_client(int incoming_socket);
+
 int main(int argc, char **argv)
 {
-    const int PORT = 55555;
-    const int NB_REQUESTS = 1;
+    int errnum;
+    int port = PORT;
     int socket_descriptor;
     int incoming_socket;
     int addr_len;
@@ -16,14 +24,18 @@ int main(int argc, char **argv)
     printf("Welcome to c-web-server!\n");
 
     // Check number of arguments, if not enough display error and finish the program
-	/*if (argc < 3) {
+	/*if (argc < 2) {
 		printf("Missing argument\n");
   		exit(-1);
 	}*/
 
+    if (argc >= 2) {
+        port = (int)*argv[1];
+    }
+
     // v3 Load a config file
 
-    // v1 Create socket on port XXX
+    // v1 Create socket on port
 	socket_descriptor = socket(AF_INET , SOCK_STREAM , 0);
 	if (socket_descriptor == -1)
 	{
@@ -35,13 +47,19 @@ int main(int argc, char **argv)
     // Prepare the sockaddr_in structure
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(PORT);
+    server.sin_port = htons(port);
 
     // Bind socket to a particular "address and port" combination.
     // It needs a sockaddr_in struct
     if(bind(socket_descriptor, (struct sockaddr *)&server , sizeof(server)) < 0)
     {
 	    printf("Bind failed\n");
+
+        errnum = errno;
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror");
+        fprintf(stderr, "Error opening file: %s\n", strerror( errnum ));
+
   		exit(-1);
     }
     printf("Bind OK\n");
@@ -59,7 +77,10 @@ int main(int argc, char **argv)
         printf("sin_port: %d\n", client.sin_port);
         printf("sin_addr: %d\n", client.sin_addr.s_addr);
         printf("sin_addr: %s\n", inet_ntoa(client.sin_addr));
-        printf("sin_zero: %hhn\n", client.sin_zero);
+        //printf("sin_zero: %hhn\n", client.sin_zero);
+
+        // v0 Write a ack to the client
+        send_message_to_client(incoming_socket);
     }
     
     /**
@@ -73,4 +94,15 @@ int main(int argc, char **argv)
    //ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 
     // v3 Log
+}
+
+void send_message_to_client(int incoming_socket)
+{
+    int ssize_t;
+    char msg[] = "This is an ACK!";
+
+    printf("Prepare to send message to client");
+    ssize_t = send(incoming_socket, msg, strlen(msg), 0);
+    //ssize_t = write(new_socket , message , strlen(message));
+    //printf("Message send to client: %s", msg);
 }
