@@ -11,7 +11,33 @@ extern int errno;
 
 const int PORT = 55555;
 const int NB_REQUESTS = 1;
+
+struct HttpRequest {
+   char method[8];
+   char *path;
+   char *agent;
+};
+
+/*
+GET /fichier.html HTTP/1.1
+Host: localhost:55555
+Connection: keep-alive
+sec-ch-ua: " Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"
+sec-ch-ua-mobile: ?0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-GB,en;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6
+*/
+
 void send_message_to_client(int incoming_socket);
+int parse_http_request(char *buffer, struct HttpRequest *request);
+
 
 int main(int argc, char **argv)
 {
@@ -22,6 +48,7 @@ int main(int argc, char **argv)
     int addr_len;
     char buffer[1024] = {0};
     struct sockaddr_in server, client;
+    struct HttpRequest *incomingRequest;
 
     printf("Welcome to c-web-server!\n");
 
@@ -82,6 +109,10 @@ int main(int argc, char **argv)
         if (recv (incoming_socket, buffer, 1024, 0))
         {
             printf("Message from client: %s\n", buffer);
+            // Analyze the request
+            if (parse_http_request(buffer, incomingRequest) < 0) {
+                ;
+            }
         }
 
         // v0 Write a ack to the client
@@ -108,4 +139,9 @@ void send_message_to_client(int incoming_socket)
 
     ssize_t = send(incoming_socket, msg, strlen(msg), 0);
     printf("Message send to client: %s", msg);
+}
+
+int parse_http_request(char *buffer, struct HttpRequest *request)
+{
+    return -1;
 }
